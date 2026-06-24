@@ -1,0 +1,27 @@
+# guardian-policy.yml — AI Code Guardian policy configuration
+version: 1
+mode: advisory  # "advisory" (comment+label, no block) or "enforcement" (block critical)
+detection: marker  # "marker", "style" (Phase 2), or "both" (Phase 2)
+# model: "ollama/codellama"  # Required if detection is "style" or "both" (Phase 2)
+
+rules:
+  - name: hallucinated-api
+    severity: critical
+    enabled: true
+    description: >
+      Detects function or method calls that match known hallucination patterns —
+      APIs that look plausible but don't exist in standard libraries or project dependencies.
+
+  - name: missing-error-handling
+    severity: high
+    enabled: true
+    description: >
+      Flags AI-generated code with bare exception handlers, missing try/finally
+      cleanup blocks, or absent null/None checks after API calls.
+
+  - name: hardcoded-secrets
+    severity: critical
+    enabled: true
+    description: >
+      Detects API keys, tokens, passwords, and other secrets hardcoded in
+      source code. Matches common patterns like sk-..., AKIA..., etc.

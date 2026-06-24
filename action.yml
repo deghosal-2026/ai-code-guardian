@@ -1,0 +1,23 @@
+name: 'AI Code Guardian'
+description: 'Detect AI-generated code in PRs and enforce governance policies'
+author: 'deghosal-2026'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  github_token:
+    description: 'GitHub token for API access'
+    required: true
+    default: ${{ github.token }}
+  policy_path:
+    description: 'Path to guardian-policy.yml'
+    required: false
+    default: 'guardian-policy.yml'
+  mode:
+    description: 'Override advisory/enforcement mode'
+    required: false
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

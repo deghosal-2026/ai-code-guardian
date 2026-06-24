@@ -1,0 +1,16 @@
+name: AI Code Guardian
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  # push:        # Uncomment to enable direct-commit analysis
+  #   branches: [main]
+
+jobs:
+  guardian:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: deghosal-2026/ai-code-guardian@v1
+        with:
+          github_token: ${{ github.token }}
