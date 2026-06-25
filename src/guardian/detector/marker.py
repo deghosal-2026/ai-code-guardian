@@ -19,6 +19,35 @@ MARKER_PATTERNS: dict[str, list[tuple[str, str]]] = {
 }
 
 
+def _process_file_lines(
+    file_path: str,
+    file_lines: list[str],
+    results: list[DetectionResult],
+) -> None:
+    if not file_lines:
+        return
+    matches: list[MarkerMatch] = []
+    for lineno, line in enumerate(file_lines, 1):
+        for tool, patterns in MARKER_PATTERNS.items():
+            for pattern_str, confidence in patterns:
+                if re.search(pattern_str, line, re.IGNORECASE):
+                    matches.append(MarkerMatch(
+                        tool=tool, pattern=pattern_str, line=lineno, confidence=confidence  # type: ignore[arg-type]
+                    ))
+    if not matches:
+        return
+    tool_counts = {}
+    for m in matches:
+        tool_counts[m.tool] = tool_counts.get(m.tool, 0) + 1
+    overall_confidence: str = "high" if any(c >= 2 for c in tool_counts.values()) else "medium"
+    results.append(DetectionResult(
+        file_path=file_path,
+        total_lines=len(file_lines),
+        matches=matches,
+        confidence=overall_confidence,
+    ))
+
+
 def analyze_diff(diff: str) -> list[DetectionResult]:
     """Scan a unified diff for AI attribution markers.
     Only analyzes added lines (those starting with '+').
@@ -29,6 +58,7 @@ def analyze_diff(diff: str) -> list[DetectionResult]:
 
     for line in diff.split("\n"):
         if line.startswith("+++ b/"):
+            _process_file_lines(current_file, file_lines, results)
             current_file = line[6:]
             file_lines = []
         elif line.startswith("@@") and current_file:
@@ -36,29 +66,6 @@ def analyze_diff(diff: str) -> list[DetectionResult]:
         elif line.startswith("+") and current_file:
             file_lines.append(line)
 
-    if not current_file or not file_lines:
-        return results
-
-    matches: list[MarkerMatch] = []
-    for lineno, line in enumerate(file_lines, 1):
-        for tool, patterns in MARKER_PATTERNS.items():
-            for pattern_str, confidence in patterns:
-                if re.search(pattern_str, line, re.IGNORECASE):
-                    matches.append(MarkerMatch(
-                        tool=tool, pattern=pattern_str, line=lineno, confidence=confidence  # type: ignore[arg-type]
-                    ))
-
-    if matches:
-        tool_counts = {}
-        for m in matches:
-            tool_counts[m.tool] = tool_counts.get(m.tool, 0) + 1
-        overall_confidence: str = "high" if any(c >= 2 for c in tool_counts.values()) else "medium"
-
-        results.append(DetectionResult(
-            file_path=current_file,
-            total_lines=len(file_lines),
-            matches=matches,
-            confidence=overall_confidence,
-        ))
+    _process_file_lines(current_file, file_lines, results)
 
     return results

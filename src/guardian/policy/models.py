@@ -38,3 +38,11 @@ class PolicyConfig(BaseModel):
         if v not in allowed:
             raise ValueError(f"detection must be one of {allowed}, got '{v}'")
         return v
+
+    @field_validator("rules")
+    @classmethod
+    def check_duplicate_names(cls, v):
+        names = [r.name for r in v]
+        if len(names) != len(set(names)):
+            raise ValueError("Duplicate rule names")
+        return v
