@@ -82,13 +82,16 @@
 
 ---
 
-## Project Complete
+## Project Complete — All Done
 
-All milestones M1 through M9 are delivered:
+All milestones M1–M9 delivered, E2E validated, and released:
 
 - **167 tests**, all passing
-- **9 milestones**, 33 issues closed
+- **47 issues closed** (33 milestone + 13 E2E + 1 enforcement)
+- **v1 git tag** created for action.yml reference
 - **Docker image** builds and runs
-- **GitHub Action** with full input/output/env var support
-- **Dashboard** with metrics API and HTML interface
-- **Full documentation** in README.md and CONTRIBUTING.md
+- **GitHub Action** with 5 inputs, 3 outputs, GUARDIAN_* env vars
+- **Dashboard** with metrics API and HTML interface (FastAPI)
+- **Enforcement mode** configured (blocked by Free plan branch protection)
+- **E2E tested** — 12 scenarios across detection, review, PR integration, audit, dashboard, Docker
+- **Full documentation**: README.md, CONTRIBUTING.md, docs/architecture.md, docs/user-guide.md, docs/test-plan.md, docs/e2e-results.md
