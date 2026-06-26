@@ -15,8 +15,13 @@ def main():
     detect.add_argument("--audit-dir", default="~/.guardian/audit")
     detect.add_argument("--verbose", action="store_true")
 
-    sub.add_parser("serve", help="Start the local dashboard server")
-    sub.add_parser("check-config", help="Validate a policy file")
+    serve = sub.add_parser("serve", help="Start the local dashboard server")
+    serve.add_argument("--port", type=int, default=8080)
+    serve.add_argument("--audit-dir", default="~/.guardian/audit")
+
+    check_config = sub.add_parser("check-config", help="Validate a policy file")
+    check_config.add_argument("--policy", default="guardian-policy.yml")
+
     sub.add_parser("generate-pages", help="Build static dashboard HTML")
     sub.add_parser("version", help="Print version")
 
@@ -32,13 +37,50 @@ def main():
         sys.exit(run_detect(args))
 
     if args.command == "serve":
-        print("guardian serve — coming soon")
+        _cmd_serve(args.port, args.audit_dir)
         sys.exit(0)
 
     if args.command == "check-config":
-        print("guardian check-config — coming soon")
+        _cmd_check_config(args.policy)
         sys.exit(0)
 
     if args.command == "generate-pages":
-        print("guardian generate-pages — coming soon")
+        _cmd_generate_pages()
         sys.exit(0)
+
+
+def _cmd_serve(port: int, audit_dir: str) -> None:
+    try:
+        import uvicorn
+        from guardian.server.app import app
+        from guardian.audit.logger import AuditLogger
+    except ImportError:
+        print("Dashboard dependencies not installed. Install with: pip install 'ai-code-guardian[server]'")
+        sys.exit(1)
+    print(f"Starting Guardian dashboard on http://0.0.0.0:{port}")
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+def _cmd_check_config(policy_path: str) -> None:
+    from pathlib import Path
+    if not Path(policy_path).exists():
+        print(f"Policy file '{policy_path}' not found.")
+        sys.exit(1)
+    from guardian.config import load_policy
+    try:
+        policy = load_policy(policy_path)
+        print(f"Policy file '{policy_path}' is valid.")
+        print(f"  Mode: {policy.mode}")
+        print(f"  Detection: {policy.detection}")
+        print(f"  Rules ({len(policy.rules)}):")
+        for rule in policy.rules:
+            status = "enabled" if rule.enabled else "disabled"
+            print(f"    - {rule.name} ({rule.severity}, {status})")
+        sys.exit(0)
+    except Exception as e:
+        print(f"Policy file '{policy_path}' is INVALID: {e}")
+        sys.exit(1)
+
+
+def _cmd_generate_pages() -> None:
+    print("guardian generate-pages — coming soon")
