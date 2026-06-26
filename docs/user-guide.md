@@ -64,12 +64,43 @@ Guardian runs automatically on every PR. You'll see:
 
 Guardian follows an **advisory-first** approach:
 
-| Phase | Behavior | Duration |
-|---|---|---|
-| Trust-building | Comment + label only, no blocking | 2–3 sprints |
-| Enforcement | Block merges on critical policy violations | After team opt-in |
+| Phase | Mode | Behavior | Duration |
+|---|---|---|---|
+| Trust-building | `advisory` | Comment + label only, check run always `neutral` | 2–3 sprints |
+| Enforcement | `enforcement` | Check run `failure` on critical violations, blocks merge | After team opt-in |
 
 Switch from `advisory` to `enforcement` in `guardian-policy.yml` when your team is ready.
+
+### Enabling Enforcement Mode
+
+To enable blocking:
+
+1. **Set the policy:**
+   ```yaml
+   # guardian-policy.yml
+   mode: enforcement
+   ```
+
+2. **Configure branch protection** (GitHub repo Settings → Branches):
+   - Add a branch protection rule for `main`
+   - Check ☑ "Require status checks to pass before merging"
+   - Add "AI Code Guardian" as a required check
+   - Optionally check ☑ "Require branches to be up to date"
+
+3. **Verify:**
+   - Open a test PR with critical violations
+   - The check run should show as ❌ failing
+   - The PR merge button should be blocked
+   - The PR comment says "ENFORCEMENT MODE — Critical violations will fail the check"
+
+### What Changes in Enforcement Mode
+
+| Aspect | Advisory | Enforcement |
+|---|---|---|
+| Check run conclusion | `neutral` | `failure` on critical, `success` otherwise |
+| Comment footer | "No code is blocked" | "Critical violations will fail the check" |
+| Workflow exit code | 0 (pass) | 2 (enforcement + critical) |
+| Merge blocked? | No | Yes, if check fails |
 
 ---
 
@@ -175,11 +206,11 @@ FPR: 0%
 
 **Conclusion logic:**
 
-| Mode | Risk Level | Conclusion |
-|---|---|---|
-| Advisory | any | `neutral` — never fails |
-| Enforcement | critical | `failure` |
-| Enforcement | low/medium/high | `success` |
+| Mode | Risk Level | Conclusion | Merge Blocked? |
+|---|---|---|---|
+| Advisory | any | `neutral` | No |
+| Enforcement | critical | `failure` | ✅ Yes (with branch protection) |
+| Enforcement | low/medium/high | `success` | No |
 
 ---
 
@@ -334,6 +365,8 @@ The dashboard reads from the audit log. If no analyses have run (or the audit di
 ---
 
 ## Architecture
+
+See [docs/architecture.md](architecture.md) for the full architecture document covering data flow, component details, data models, and design decisions.
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌──────────────┐

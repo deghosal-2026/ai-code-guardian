@@ -30,27 +30,42 @@ python -m pytest tests/test_action.py -v
 - Python 3.11+ target
 - Lint with `ruff check src/`
 - Line length: 100 characters
-- No type: ignore comments unless absolutely necessary
+- No `type: ignore` comments unless absolutely necessary
 - Tests use pytest, pytest-httpx for HTTP mocking
 
 ## Project Structure
 
+See [docs/architecture.md](docs/architecture.md) for the full architecture.
+
+## Testing Enforcement Mode
+
+Enforcement mode behavior is tested across 3 test files:
+
+```bash
+# Check Run conclusion tests (advisory=neutral, enforcement+critical=failure)
+python -m pytest tests/test_check_run.py -v -k "enforcement"
+
+# Action pipeline exit code (2 = enforcement + critical)
+python -m pytest tests/test_cli.py -v -k "enforcement"
+
+# Comment text in enforcement mode
+python -m pytest tests/test_commentator.py -v -k "enforcement"
 ```
-src/guardian/
-├── detector/    # AI code detection
-├── policy/      # Policy loading
-├── reviewer/    # Rule evaluation
-├── pr/          # GitHub integration
-├── audit/       # Audit logging
-├── metrics/     # Dashboard metrics
-├── server/      # Dashboard server
-├── cli.py       # CLI commands
-├── action.py    # Action pipeline
-└── config.py    # Configuration
-tests/
-├── test_detector.py
-├── test_policy.py
-└── ...
+
+To test enforcement mode end-to-end locally:
+
+```bash
+# 1. Switch policy to enforcement
+sed -i '' 's/mode: advisory/mode: enforcement/' guardian-policy.yml
+
+# 2. Run against a PR with critical violations
+guardian detect --token $GH_TOKEN --repo owner/repo --pr 42
+
+# 3. Check exit code (should be 2 for critical violations)
+echo $?
+
+# 4. Switch back to advisory
+sed -i '' 's/mode: enforcement/mode: advisory/' guardian-policy.yml
 ```
 
 ## Pull Request Guidelines
@@ -59,11 +74,10 @@ tests/
 2. Run the full test suite: `python -m pytest tests/ -v`
 3. Run `ruff check src/` before committing
 4. Keep PRs focused on a single feature or fix
-5. Update docs/TODO.md if adding or completing milestones
 
 ## Milestones
 
-See [docs/TODO.md](docs/TODO.md) for the current milestone tracking. Open issues are organized by milestone (M1-M9) on the [issues page](https://github.com/deghosal-2026/ai-code-guardian/issues).
+See [docs/TODO.md](docs/TODO.md) for the current milestone tracking. Open issues on the [issues page](https://github.com/deghosal-2026/ai-code-guardian/issues).
 
 ## License
 

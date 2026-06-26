@@ -57,9 +57,9 @@ End-to-end validation of AI Code Guardian across all components: detection, revi
 ### T8 — Enforcement mode — [#41](https://github.com/deghosal-2026/ai-code-guardian/issues/41)
 | Field | Value |
 |-------|-------|
-| **Objective** | Verify enforcement mode changes check run conclusion |
-| **Steps** | 1. Set policy `governance_mode: enforcement`<br>2. Create PR with critical violations<br>3. Trigger guardian workflow<br>4. Validate check run failure |
-| **Expected** | Check run conclusion: `failure` (critical) or `success` (low/medium)<br>Comment label says "ENFORCEMENT MODE" |
+| **Objective** | Verify enforcement mode changes check run conclusion and blocks merges |
+| **Steps** | 1. Set policy `mode: enforcement` in `guardian-policy.yml`<br>2. Create PR with critical violations (e.g., hardcoded secrets)<br>3. Trigger guardian workflow<br>4. Validate check run failure<br>5. Attempt to merge PR — should be blocked by branch protection<br>6. Reset policy to `mode: advisory` after test |
+| **Expected** | Check run conclusion: `failure` (critical) or `success` (low/medium)<br>Comment footer: "Enforcement mode is active. Critical violations will fail the check."<br>Workflow exit code: 2 for critical violations<br>PR blockable via branch protection rules requiring "AI Code Guardian" check |
 
 ### T9 — Audit log entries created — [#42](https://github.com/deghosal-2026/ai-code-guardian/issues/42)
 | Field | Value |
