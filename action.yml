@@ -15,9 +15,33 @@ inputs:
     required: false
     default: 'guardian-policy.yml'
   mode:
-    description: 'Override advisory/enforcement mode'
+    description: 'Override advisory/enforcement mode (advisory|enforcement)'
     required: false
+  audit_dir:
+    description: 'Directory for audit logs'
+    required: false
+    default: '.guardian/audit'
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'
+
+outputs:
+  conclusion:
+    description: 'Check run conclusion (success|failure|neutral)'
+  risk_level:
+    description: 'Maximum risk level across all violations (low|medium|high|critical)'
+  violation_count:
+    description: 'Total number of violations found'
 
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  env:
+    GUARDIAN_TOKEN: ${{ inputs.github_token }}
+    GUARDIAN_POLICY_PATH: ${{ inputs.policy_path }}
+    GUARDIAN_MODE: ${{ inputs.mode }}
+    GUARDIAN_AUDIT_DIR: ${{ inputs.audit_dir }}
+    GUARDIAN_DEBUG: ${{ inputs.debug }}
+  args:
+    - 'detect'

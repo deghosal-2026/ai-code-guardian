@@ -1,25 +1,41 @@
 """FastAPI dashboard server for Guardian metrics."""
 
+import os
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-import os
+from jinja2 import Environment, FileSystemLoader
+from prometheus_client import generate_latest
+
+from guardian.audit.logger import AuditLogger
+from guardian.metrics.collector import MetricsCollector
+
+templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+env = Environment(loader=FileSystemLoader(templates_dir))
 
 app = FastAPI(title="AI Code Guardian Dashboard")
-templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
+
+
+def _get_collector(audit_dir: str = "~/.guardian/audit") -> MetricsCollector:
+    logger = AuditLogger(repo="_dashboard_", audit_dir=audit_dir)
+    return MetricsCollector(logger)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+async def dashboard(request: Request, audit_dir: str = "~/.guardian/audit"):
+    stats = _get_collector(audit_dir)
+    template = env.get_template("dashboard.html")
+    html = template.render(request=request, stats=stats)
+    return HTMLResponse(html)
 
 
 @app.get("/api/stats")
-async def api_stats():
-    return {"status": "coming soon"}
+async def api_stats(audit_dir: str = "~/.guardian/audit"):
+    stats = _get_collector(audit_dir)
+    return stats.to_dict()
 
 
 @app.get("/metrics")
 async def metrics():
-    from prometheus_client import generate_latest
     return generate_latest()

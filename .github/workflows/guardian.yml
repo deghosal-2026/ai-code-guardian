@@ -3,8 +3,11 @@ name: AI Code Guardian
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  # push:        # Uncomment to enable direct-commit analysis
-  #   branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
 
 jobs:
   guardian:

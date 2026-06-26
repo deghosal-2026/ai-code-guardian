@@ -49,13 +49,13 @@ class TestCliArgParsing:
         with patch.object(sys, "argv", ["guardian", "detect", "--repo", "a/b"]):
             with pytest.raises(SystemExit) as exc:
                 main()
-            assert exc.value.code == 2
+            assert exc.value.code == 1
 
     def test_detect_missing_repo(self):
         with patch.object(sys, "argv", ["guardian", "detect", "--token", "tok"]):
             with pytest.raises(SystemExit) as exc:
                 main()
-            assert exc.value.code == 2
+            assert exc.value.code == 1
 
     def test_check_config_invalid_file(self):
         with patch.object(sys, "argv", ["guardian", "check-config", "--policy", "/nonexistent.yml"]):

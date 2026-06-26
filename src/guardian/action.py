@@ -17,8 +17,8 @@ from guardian.audit.logger import AuditLogger
 
 
 def run_detect(args: Namespace) -> int:
-    token = args.token or os.environ.get("INPUT_GITHUB_TOKEN", "")
-    repo = args.repo or os.environ.get("GITHUB_REPOSITORY", "")
+    token = args.token or os.environ.get("GUARDIAN_TOKEN") or os.environ.get("INPUT_GITHUB_TOKEN", "")
+    repo = args.repo or os.environ.get("GUARDIAN_REPO") or os.environ.get("GITHUB_REPOSITORY", "")
 
     pr_number = args.pr
     if pr_number is None and "GITHUB_EVENT_PATH" in os.environ:
@@ -30,15 +30,24 @@ def run_detect(args: Namespace) -> int:
 
     commit_sha = args.commit or os.environ.get("GITHUB_SHA")
 
-    cfg = GuardianConfig(
-        github_token=token,
-        repo=repo,
-        pr_number=pr_number,
-        commit_sha=commit_sha,
-        policy_path=args.policy,
-        audit_dir=args.audit_dir,
-        verbose=args.verbose,
-    )
+    policy_path = os.environ.get("GUARDIAN_POLICY_PATH") or args.policy
+    audit_dir = os.environ.get("GUARDIAN_AUDIT_DIR") or args.audit_dir
+    verbose = args.verbose or os.environ.get("GUARDIAN_DEBUG", "").lower() == "true"
+
+    try:
+        cfg = GuardianConfig(
+            github_token=token,
+            repo=repo,
+            pr_number=pr_number,
+            commit_sha=commit_sha,
+            policy_path=policy_path,
+            audit_dir=audit_dir,
+            verbose=verbose,
+        )
+    except Exception as exc:
+        logging.error("Configuration error: %s", exc)
+        print(f"Configuration error: {exc}", file=sys.stderr)
+        return 1
 
     if cfg.verbose:
         logging.basicConfig(level=logging.DEBUG, stream=sys.stderr)

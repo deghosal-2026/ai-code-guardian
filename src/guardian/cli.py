@@ -7,8 +7,8 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
 
     detect = sub.add_parser("detect", help="Run analysis on a PR or commit")
-    detect.add_argument("--token", required=True)
-    detect.add_argument("--repo", required=True)
+    detect.add_argument("--token", default=None)
+    detect.add_argument("--repo", default=None)
     detect.add_argument("--pr", type=int, default=None)
     detect.add_argument("--commit", default=None)
     detect.add_argument("--policy", default="guardian-policy.yml")

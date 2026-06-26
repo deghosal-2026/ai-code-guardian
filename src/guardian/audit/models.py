@@ -4,6 +4,9 @@ from datetime import datetime, timezone
 from typing import Literal
 from uuid import uuid4
 
+from guardian.detector.models import DetectionResult, MarkerMatch
+from guardian.reviewer.models import Violation
+
 
 @dataclass
 class AuditEntry:
@@ -29,25 +32,49 @@ class AuditEntry:
             self.timestamp = datetime.now(timezone.utc).isoformat()
         if not self.event_id:
             self.event_id = str(uuid4())
+        if self.violations is not None:
+            self.violations = [
+                v if isinstance(v, Violation) else _dict_to_violation(v)
+                for v in self.violations
+            ]
+        if self.detection_results is not None:
+            self.detection_results = [
+                d if isinstance(d, DetectionResult) else _dict_to_detection(d)
+                for d in self.detection_results
+            ]
 
     def to_json(self) -> str:
         d = asdict(self)
-        d["action"] = str(self.action) if self.action else None
-        d["feedback"] = str(self.feedback) if self.feedback else None
-        if d["violations"] is not None:
-            d["violations"] = [_violation_to_dict(v) for v in d["violations"]]
-        if d["detection_results"] is not None:
-            d["detection_results"] = [_detection_to_dict(r) for r in d["detection_results"]]
         return json.dumps(d, default=str, ensure_ascii=False)
 
 
-def _violation_to_dict(v) -> dict:
-    if hasattr(v, "__dataclass_fields__"):
-        return asdict(v)
-    return dict(v)
+def _dict_to_violation(d: dict) -> Violation:
+    return Violation(
+        rule_name=d.get("rule_name", ""),
+        severity=d.get("severity", "low"),
+        file_path=d.get("file_path", ""),
+        line=d.get("line"),
+        pattern_found=d.get("pattern_found", ""),
+        explanation=d.get("explanation", ""),
+        remediation=d.get("remediation", ""),
+        governance_url=d.get("governance_url"),
+    )
 
 
-def _detection_to_dict(d) -> dict:
-    if hasattr(d, "__dataclass_fields__"):
-        return asdict(d)
-    return dict(d)
+def _dict_to_detection(d: dict) -> DetectionResult:
+    matches_data = d.get("matches", [])
+    matches = [
+        m if isinstance(m, MarkerMatch) else MarkerMatch(
+            tool=m.get("tool", ""),
+            pattern=m.get("pattern", ""),
+            line=m.get("line", 0),
+            confidence=m.get("confidence", "medium"),
+        )
+        for m in matches_data
+    ]
+    return DetectionResult(
+        file_path=d.get("file_path", ""),
+        total_lines=d.get("total_lines", 0),
+        matches=matches,
+        confidence=d.get("confidence", "low"),
+    )
