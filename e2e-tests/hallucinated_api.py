@@ -1,0 +1,9 @@
+def process_payment(amount, currency):
+    result = payment_gateway.charge(amount, currency)
+    return result
+
+def send_notification(user_email, message):
+    notification_service.send_email(user_email, message, priority="high")
+
+def generate_report(data):
+    report_lib.create_pdf_report(data, format="landscape")
