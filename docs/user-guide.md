@@ -71,6 +71,37 @@ Guardian follows an **advisory-first** approach:
 
 Switch from `advisory` to `enforcement` in `guardian-policy.yml` when your team is ready.
 
+### Enabling Enforcement Mode
+
+To enable blocking:
+
+1. **Set the policy:**
+   ```yaml
+   # guardian-policy.yml
+   mode: enforcement
+   ```
+
+2. **Configure branch protection** (GitHub repo Settings → Branches):
+   - Add a branch protection rule for `main`
+   - Check ☑ "Require status checks to pass before merging"
+   - Add "AI Code Guardian" as a required check
+   - Optionally check ☑ "Require branches to be up to date"
+
+3. **Verify:**
+   - Open a test PR with critical violations
+   - The check run should show as ❌ failing
+   - The PR merge button should be blocked
+   - The PR comment says "ENFORCEMENT MODE — Critical violations will fail the check"
+
+### What Changes in Enforcement Mode
+
+| Aspect | Advisory | Enforcement |
+|---|---|---|
+| Check run conclusion | `neutral` | `failure` on critical, `success` otherwise |
+| Comment footer | "No code is blocked" | "Critical violations will fail the check" |
+| Workflow exit code | 0 (pass) | 2 (enforcement + critical) |
+| Merge blocked? | No | Yes, if check fails |
+
 ---
 
 ## Policy Reference
@@ -175,11 +206,11 @@ FPR: 0%
 
 **Conclusion logic:**
 
-| Mode | Risk Level | Conclusion |
-|---|---|---|
-| Advisory | any | `neutral` — never fails |
-| Enforcement | critical | `failure` |
-| Enforcement | low/medium/high | `success` |
+| Mode | Risk Level | Conclusion | Merge Blocked? |
+|---|---|---|---|
+| Advisory | any | `neutral` | No |
+| Enforcement | critical | `failure` | ✅ Yes (with branch protection) |
+| Enforcement | low/medium/high | `success` | No |
 
 ---
 
