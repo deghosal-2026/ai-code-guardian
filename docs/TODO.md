@@ -45,9 +45,13 @@
 - `tests/test_audit.py` — 20 tests
 - Closed: #10, #11
 
-### 🔜 M5: CLI Framework
-- **Open:** #18 (M5-DEV epic), #19 (M5-TEST), #20 (M5-DOCS)
-- `cli.py`, `action.py`, `__main__.py` — partial stubs exist
+### ✅ M5: CLI Framework (done)
+- `config.py` — GuardianConfig pydantic model with token/repo validation
+- `cli.py` — detect orchestrates full flow, serve/check-config/version implemented
+- `action.py` — full detect pipeline with error handling, audit logging, exit codes
+- `tests/test_cli.py` — 19 tests
+- Closed: #18, #19
+- **Open: #20 (M5-DOCS)**
 
 ### 🔜 M6: Dashboard
 - **Open:** #21, #22, #23, #24 (M6-DEV), #25 (M6-TEST), #26 (M6-DOCS)
@@ -67,13 +71,13 @@
 
 ---
 
-## Next Up: M5 (CLI Framework)
+## Next Up: M6 (Dashboard)
 
-The CLI wires all M1-M4 modules together into a working `guardian detect` command:
-1. `cli.py` — wire detect to orchestrate config→detect→review→comment→label→check_run→audit
-2. `config.py` — GuardianConfig pydantic model for runtime config
-3. `action.py` — read GHA env vars, dispatch to detect
-4. `tests/test_cli.py` — integration tests
+The dashboard teaml reads audit logs and exposes metrics via FastAPI + Prometheus:
+1. `metrics/collector.py` — MetricsCollector reading audit entries
+2. `metrics/prometheus.py` — Prometheus-format /metrics export
+3. `server/app.py` — FastAPI server with /dashboard, /api/stats, /metrics
+4. `guardian serve` CLI command (wired in M5, needs server module)
 
 ## Open Issues Summary
 
@@ -81,9 +85,9 @@ The CLI wires all M1-M4 modules together into a working `guardian detect` comman
 |-----------|------|
 | M3: PR Integration | 0 |
 | M4: Audit Trail | 0 |
-| M5: CLI Framework | 3 |
+| M5: CLI Framework | 1 (docs only) |
 | M6: Dashboard | 6 |
 | M7: Action Packaging | 3 |
 | M8: Reference Files | 1 |
 | M9: Docs & Release | 3 |
-| **Total** | **16** |
+| **Total** | **14** |
