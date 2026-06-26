@@ -39,9 +39,11 @@
 - `tests/test_check_run.py` — 15 tests
 - Closed: #12, #13, #14, #15, #16, #17
 
-### 🔜 M4: Audit Trail
-- **Open:** #10 (M4-DEV), #11 (M4-TEST)
-- `audit/` — stubs exist
+### ✅ M4: Audit Trail (done)
+- `audit/models.py` — AuditEntry dataclass with auto-generated timestamp/event_id, to_json() serialization
+- `audit/logger.py` — AppendLogger (append-only JSONL, file-per-repo isolation, read with since filter)
+- `tests/test_audit.py` — 20 tests
+- Closed: #10, #11
 
 ### 🔜 M5: CLI Framework
 - **Open:** #18 (M5-DEV epic), #19 (M5-TEST), #20 (M5-DOCS)
@@ -65,22 +67,23 @@
 
 ---
 
-## Next Up: M4 (Audit Trail)
+## Next Up: M5 (CLI Framework)
 
-The audit logger is the next dependency for M5+ — it feeds both the CLI flow and the dashboard:
-1. `audit/models.py` — AuditEntry dataclass
-2. `audit/logger.py` — append-only JSONL logger with file-per-repo isolation
-3. `tests/test_audit.py`
+The CLI wires all M1-M4 modules together into a working `guardian detect` command:
+1. `cli.py` — wire detect to orchestrate config→detect→review→comment→label→check_run→audit
+2. `config.py` — GuardianConfig pydantic model for runtime config
+3. `action.py` — read GHA env vars, dispatch to detect
+4. `tests/test_cli.py` — integration tests
 
 ## Open Issues Summary
 
 | Milestone | Open |
 |-----------|------|
 | M3: PR Integration | 0 |
-| M4: Audit Trail | 2 |
+| M4: Audit Trail | 0 |
 | M5: CLI Framework | 3 |
 | M6: Dashboard | 6 |
 | M7: Action Packaging | 3 |
 | M8: Reference Files | 1 |
 | M9: Docs & Release | 3 |
-| **Total** | **18** |
+| **Total** | **16** |
