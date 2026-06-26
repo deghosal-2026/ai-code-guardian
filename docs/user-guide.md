@@ -229,24 +229,68 @@ guardian serve --port 8080 --audit-dir /path/to/audit
 
 ---
 
-## Commands
+## Local Run
+
+You can run guardian from your terminal for testing, without setting up the GitHub Action.
+
+### Prerequisites
 
 ```bash
-# Analyze a PR
-guardian detect --token $GH_TOKEN --repo owner/repo --pr 42
-
-# Analyze a commit
-guardian detect --token $GH_TOKEN --repo owner/repo --commit SHA
-
-# Start dashboard server
-guardian serve --port 8080
-
-# Validate policy file
-guardian check-config --policy guardian-policy.yml
-
-# Print version
-guardian version
+pip install ai-code-guardian
+# or for development: pip install -e ".[dev]"
 ```
+
+A GitHub token with `repo` scope:
+```bash
+export GH_TOKEN=$(gh auth token)
+# or create a fine-grained token at https://github.com/settings/tokens
+```
+
+### Analyze a PR
+
+```bash
+guardian detect --token $GH_TOKEN --repo owner/repo --pr 42
+```
+
+The pipeline: fetch diff → detect AI markers → apply policy rules → post comment → apply label → create check run → log audit.
+
+### Analyze a commit (no PR)
+
+```bash
+guardian detect --token $GH_TOKEN --repo owner/repo --commit SHA
+```
+
+Skips commenting/labeling/check run (no PR to post to). Still logs to audit.
+
+### Validate a policy file
+
+```bash
+guardian check-config --policy guardian-policy.yml
+```
+
+### Start the dashboard
+
+```bash
+guardian serve --port 8080 --audit-dir ~/.guardian/audit
+```
+
+### Common local flags
+
+| Flag | Env Var | Purpose |
+|------|---------|---------|
+| `--token` | `GUARDIAN_TOKEN` | GitHub API token |
+| `--repo` | `GUARDIAN_REPO` | Repository (`owner/name`) |
+| `--pr` | — | PR number to analyze |
+| `--commit` | — | Commit SHA to analyze |
+| `--policy` | `GUARDIAN_POLICY_PATH` | Path to policy YAML |
+| `--audit-dir` | `GUARDIAN_AUDIT_DIR` | Audit log directory |
+| `--verbose` | `GUARDIAN_DEBUG=true` | Enable debug logging |
+
+### Limitations of local runs
+
+- **Check runs** require `checks:write` scope — your personal token likely doesn't have it. Check runs only work in CI with `GITHUB_TOKEN`.
+- **Rate limits** are 5,000/hour for authenticated requests (shared with all GitHub API calls).
+- **Exit codes**: 0 = pass, 1 = error, 2 = enforcement + critical.
 
 ## Environment Variables
 
