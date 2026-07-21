@@ -11,10 +11,13 @@ from prometheus_client import generate_latest
 from guardian.audit.logger import AuditLogger
 from guardian.metrics.collector import MetricsCollector
 
+from guardian.server.mcp_api import router as mcp_router
+
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 env = Environment(loader=FileSystemLoader(templates_dir))
 
 app = FastAPI(title="AI Code Guardian Dashboard")
+app.include_router(mcp_router)
 
 
 def _get_collector(audit_dir: str = "~/.guardian/audit") -> MetricsCollector:
