@@ -13,7 +13,7 @@ jobs:
   guardian:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: deghosal-2026/ai-code-guardian@v1
         with:
           github_token: ${{ github.token }}
