@@ -15,6 +15,8 @@ from guardian.reviewer.engine import evaluate
 from guardian.audit.models import AuditEntry
 from guardian.audit.logger import AuditLogger
 
+logger = logging.getLogger(__name__)
+
 
 def run_detect(args: Namespace) -> int:
     token = args.token or os.environ.get("GUARDIAN_TOKEN") or os.environ.get("INPUT_GITHUB_TOKEN", "")
@@ -45,7 +47,7 @@ def run_detect(args: Namespace) -> int:
             verbose=verbose,
         )
     except Exception as exc:
-        logging.error("Configuration error: %s", exc)
+        logger.error("Configuration error: %s", exc)
         print(f"Configuration error: {exc}", file=sys.stderr)
         return 1
 
@@ -57,7 +59,7 @@ def run_detect(args: Namespace) -> int:
     try:
         return _run_analysis(cfg, start)
     except Exception as exc:
-        logging.exception("Analysis failed")
+        logger.exception("Analysis failed")
         _log_error(cfg, exc, start)
         return 1
 
@@ -72,7 +74,7 @@ def _run_analysis(cfg: GuardianConfig, start: float) -> int:
     elif cfg.commit_sha:
         diff = client.get_commit_diff(cfg.commit_sha)
     else:
-        raise ValueError("Either --pr or --commit must be provided")
+        raise TypeError("Either --pr or --commit must be provided")
 
     detections = analyze_diff(diff)
     review = evaluate(detections, policy, diff)
@@ -115,7 +117,7 @@ def _log_audit(
     duration_ms: int,
 ) -> None:
     try:
-        logger = AuditLogger(repo=cfg.repo, audit_dir=cfg.audit_dir)
+        audit_logger = AuditLogger(repo=cfg.repo, audit_dir=cfg.audit_dir)
         entry = AuditEntry(
             repo=cfg.repo,
             pr_number=cfg.pr_number,
@@ -126,14 +128,14 @@ def _log_audit(
             risk_level=review.risk_level,
             duration_ms=duration_ms,
         )
-        logger.append(entry)
+        audit_logger.append(entry)
     except Exception as exc:
-        logging.warning("Failed to write audit log: %s", exc)
+        logger.warning("Failed to write audit log: %s", exc)
 
 
 def _log_error(cfg: GuardianConfig, exc: Exception, start: float) -> None:
     try:
-        logger = AuditLogger(repo=cfg.repo, audit_dir=cfg.audit_dir)
+        audit_logger = AuditLogger(repo=cfg.repo, audit_dir=cfg.audit_dir)
         duration_ms = int((time.monotonic() - start) * 1000)
         entry = AuditEntry(
             repo=cfg.repo,
@@ -143,6 +145,6 @@ def _log_error(cfg: GuardianConfig, exc: Exception, start: float) -> None:
             error=str(exc),
             duration_ms=duration_ms,
         )
-        logger.append(entry)
+        audit_logger.append(entry)
     except Exception:
         pass
